@@ -9,7 +9,7 @@
 () recv_internal() {
 }
 
-;; check
+;; check with actions on
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
