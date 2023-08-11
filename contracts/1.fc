@@ -15,12 +15,14 @@
     return tree;
   }
   slice slc = tree.begin_parse();
-  while (~ slice_refs_empty?(slc)) {
+  int cnt = slc.slice_refs();
+  while (cnt > 0) {
     (slc, cell child) = slc.load_ref();
     cell rec = find_branch_by_hash(hash, child);
     if (~ rec.begin_parse().slice_empty?()) {
       return rec;
     }
+    cnt -= 1;
   }
   return begin_cell().end_cell();
 }
