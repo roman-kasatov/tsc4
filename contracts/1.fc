@@ -9,13 +9,29 @@
 () recv_internal() {
 }
 
+(int) check_branch(int hash, cell tree) {
+  if (tree.cell_hash() == hash) {
+    return true;
+  }
+  slice slc = tree.begin_parse();
+  int ref_cnt = slc.slice_refs();
+  while (ref_cnt > 0) {
+    cell child = slc~load_ref();
+    if (check_branch(hash, child)) {
+      return true;
+    }
+    ref_cnt -= 1;
+  }
+  return false;
+}
+
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
   slice slc = tree.begin_parse();
   int ref_cnt = slc.slice_refs();
   while (ref_cnt > 0) {
     cell child = slc~load_ref();
-    if (child.cell_hash() == hash) {
+    if (check_branch(hash, child)) {
       return child;
     }
     ref_cnt -= 1;
