@@ -9,20 +9,28 @@
 () recv_internal() {
 }
 
-;; testable
-(cell) find_branch_by_hash(int hash, cell tree) method_id {
-  if (cell_hash(tree) == hash) {
+
+global hash_global;
+
+(cell) find_rec(cell tree) {
+  if (cell_hash(tree) == hash_global) {
     return tree;
   }
   slice slc = tree.begin_parse();
-  int cnt = slc.slice_refs();
-  while (cnt > 0) {
+
+  while (~ slc.slice_refs_empty?()) {
     cell child = slc~load_ref();
-    cell rec = find_branch_by_hash(hash, child);
+    cell rec = find_rec(child);
     if (~ rec.begin_parse().slice_empty?()) {
       return rec;
     }
-    cnt -= 1;
   }
+
   return begin_cell().end_cell();
+}
+
+;; testable
+(cell) find_branch_by_hash(int hash, cell tree) method_id {
+  hash_global = hash;
+  return find_rec(tree);
 }
