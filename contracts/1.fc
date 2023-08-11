@@ -13,7 +13,7 @@
 global hash_global;
 global res;
 
-() find_rec(cell tree) {
+() find_rec(cell tree) impure {
   if (cell_hash(tree) == hash_global) {
     res = tree;
   }
