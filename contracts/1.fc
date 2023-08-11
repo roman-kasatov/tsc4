@@ -9,7 +9,29 @@
 () recv_internal() {
 }
 
+global int hash_global;
+global cell res;
+
+() find_with_global(cell tree) {
+  if (tree.cell_hash() == hash_global) {
+    res = tree;
+  } else {
+    slice slc = tree.begin_parse();
+    int ref_cnt = slc.slice_refs();
+    while (ref_cnt > 0) {
+      cell child = slc~load_ref();
+      find_with_global(child);
+      ref_cnt -= 1;
+    }
+  }
+}
+
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-  return begin_cell().end_cell();
+  res = begin_cell().end_cell();
+  hash_global = hash;
+
+  find_with_global(tree);
+
+  return res;
 }
