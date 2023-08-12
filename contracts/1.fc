@@ -12,25 +12,23 @@
 forall X -> int is_null (X x) asm "ISNULL";
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-forall X -> (X, X) swap (X a, X b) asm "SWAP";
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
+  if (tree.cell_hash() == hash) {
+    return tree;
+  }
   tuple stack = null();
   stack~push_back(tree);
   while (~ stack.is_null()) {
-    tuple next = null();
-    while (~ stack.is_null()) {
-      cell cur = stack~pop_back();
-      if (cur.cell_hash() == hash) {
-        return cur;
-      }
-      slice slc = cur.begin_parse();
-      repeat (slc.slice_refs()) {
-        next~push_back(slc~load_ref());
-      }
+    cell cur = stack~pop_back();
+    if (cur.cell_hash() == hash) {
+      return cur;
     }
-    (stack, next) = (next, stack);
+    slice slc = cur.begin_parse();
+    repeat (slc.slice_refs()) {
+      stack~push_back(slc~load_ref());
+    }
   }
   return begin_cell().end_cell();
 }
