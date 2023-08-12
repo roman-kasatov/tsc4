@@ -12,8 +12,32 @@
 () recv_internal() {
 }
 
+(int) length(tuple tup) asm "TLEN";
+
 ;; testable
 (tuple) matrix_multiplier(tuple matrixA, tuple matrixB) method_id {
-  return null();
+  int row = 0;
+  int row_nmb = matrixA.length();
+  int col_nmb = matrixB.first().length();
+  int depth = matrixB.length();
+  tuple res = empty_tuple();
+
+  while (row < row_nmb) {
+    tuple res_row = empty_tuple();
+    int col = 0;
+    while (col < col_nmb) {
+      int sum = 0;
+      int k = 0;
+      while (k < depth) {
+        sum += matrixA.at(row).at(k) * matrixB.at(k).at(col);
+        k += 1;
+      }
+      res_row~tpush(sum);
+      col += 1;
+    }
+    res~tpush(res_row);
+    row += 1;
+  }
+  return res;
 }
 
