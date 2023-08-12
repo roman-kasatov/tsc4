@@ -12,18 +12,18 @@
 forall X -> int is_null (X x) asm "ISNULL";
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
+forall X -> (X) get_back(tuple t) asm "FIRST";
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
   tuple stack = null();
   stack~push_back(tree);
   while (~ stack.is_null()) {
-    cell cur = stack~pop_back();
-    if (cur.cell_hash() == hash) {
-      return cur;
+    if (stack.get_back().cell_hash() == hash) {
+      return stack.get_back();
     }
-    slice slc = cur.begin_parse();
-    while (~ slc.slice_refs_empty?()) {
+    slice slc = stack~pop_back().begin_parse();
+    repeat (slc.slice_refs()) {
       stack~push_back(slc~load_ref());
     }
   }
