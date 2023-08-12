@@ -24,12 +24,13 @@
 
   while (row < row_nmb) {
     tuple res_row = empty_tuple();
+    tuple A_row = matrixA.at(row);
     int col = 0;
     while (col < col_nmb) {
       int sum = 0;
       int k = 0;
       while (k < depth) {
-        sum += matrixA.at(row).at(k) * matrixB.at(k).at(col);
+        sum += A_row.at(k) * matrixB.at(k).at(col);
         k += 1;
       }
       res_row~tpush(sum);
