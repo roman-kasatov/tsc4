@@ -10,7 +10,6 @@
 }
 
 (int) shift_letter(int shift, int letter) inline {
-  shift = shift & 0xFF;
   if ((65 <= letter) & (letter <= 90)) { ;; A-Z
     return (letter + shift - 65) % 26 + 65;
   }
