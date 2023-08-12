@@ -25,7 +25,7 @@
   builder res = begin_cell().store_uint(0, 32);
   slice slc = text.begin_parse();
   slc~skip_bits(32);
-  while (~ slc.slice_empty?()) {
+  while (slc.slice_bits() >= 8) {
     int letter = slc~load_uint(8);
     letter = shift_letter(shift, letter);
     res~store_uint(letter, 8);
@@ -38,7 +38,7 @@
   builder res = begin_cell().store_uint(0, 32);
   slice slc = text.begin_parse();
   slc~skip_bits(32);
-  while (~ slc.slice_empty?()) {
+  while (slc.slice_bits() >= 8) {
     int letter = slc~load_uint(8);
     letter = shift_letter(- shift, letter);
     res~store_uint(letter, 8);
