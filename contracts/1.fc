@@ -12,7 +12,7 @@
 forall X -> int is_null (X x) asm "ISNULL";
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-forall X -> X get_back (tuple t) asm "SECOND";
+forall X -> X get_back (tuple t) asm "CDR";
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
