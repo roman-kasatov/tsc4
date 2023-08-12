@@ -22,14 +22,14 @@
   int depth = matrixB.length();
   tuple res = empty_tuple();
 
-  while (row < row_nmb) {
+  repeat (row_nmb) {
     tuple res_row = empty_tuple();
     tuple A_row = matrixA.at(row);
     int col = 0;
-    while (col < col_nmb) {
+    repeat (col_nmb) {
       int sum = 0;
       int k = 0;
-      while (k < depth) {
+      repeat (depth) {
         sum += A_row.at(k) * matrixB.at(k).at(col);
         k += 1;
       }
