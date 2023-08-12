@@ -12,19 +12,22 @@
 forall X -> int is_null (X x) asm "ISNULL";
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-forall X -> X get_back (tuple t) asm "CDR";
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
+  if (tree.cell_hash() == hash) {
+    return tree;
+  }
   tuple stack = null();
-  stack~push_back(tree);
+  stack~push_back(tree.begin_parse());
   while (~ stack.is_null()) {
-    if (stack.get_back().cell_hash() == hash) {
-      return stack.get_back();
-    }
-    slice slc = stack~pop_back().begin_parse();
-    repeat (slc.slice_refs()) {
-      stack~push_back(slc~load_ref());
+    slice cur = stack~pop_back();
+    repeat (cur.slice_refs()) {
+      cell next = cur~load_ref();
+      if (next.cell_hash() == hash) {
+        return next;
+      }
+      stack~push_back(next.begin_parse());
     }
   }
   return begin_cell().end_cell();
