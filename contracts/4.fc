@@ -9,13 +9,33 @@
 () recv_internal() {
 }
 
+(int) shift_letter(int shift, int letter) inline {
+  return (letter + 0xFF + shift) & 0xFF;
+}
+
 ;; testable
 (cell) caesar_cipher_encrypt(int shift, cell text) method_id {
-  return begin_cell().end_cell();
+  builder res = begin_cell();
+  slice slc = text.begin_parse();
+  slc~skip_bits(32);
+  while (~ slc.slice_empty?()) {
+    int letter = slc~load_uint(8);
+    letter = shift_letter(shift, letter);
+    res~store_uint(letter, 8);
+  }
+  return res.end_cell();
 }
 
 ;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-  return begin_cell().end_cell();
+  builder res = begin_cell();
+  slice slc = text.begin_parse();
+  slc~skip_bits(32);
+  while (~ slc.slice_empty?()) {
+    int letter = slc~load_uint(8);
+    letter = shift_letter(- shift, letter);
+    res~store_uint(letter, 8);
+  }
+  return res.end_cell();
 }
 
