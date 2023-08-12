@@ -26,8 +26,9 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 (cell) shift_text(int shift, cell text) {
   tuple stack = null();
   slice slc = text.begin_parse();
+  slc.skip_bits(32);
 
-  builder out = begin_cell();
+  builder out = begin_cell().store_uint(0, 32);
   int flag = true;
   while (flag) {
     while (~ slc.slice_data_empty?()) {
