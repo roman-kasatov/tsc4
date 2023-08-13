@@ -23,13 +23,14 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return letter;
 }
 
-(builder) shift_slice(builder b, slice slc, int shift) inline {
-  while (~ slc.slice_data_empty?()) {
+(builder, slice) shift_slice(builder b, slice slc, int shift) inline {
+  ;; repeat (slc.slice_bits() / 8) {
+  while (~ slc.slice_data_empty?()) { 
     int letter = slc~load_uint(8);
     letter = shift_letter(shift, letter);
     b~store_uint(letter, 8);
   }
-  return b;
+  return (b, slc);
 }
 
 (cell) shift_text(int shift, cell text) {
@@ -44,14 +45,14 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   }
 
   builder out = begin_cell();
-  out = shift_slice(out, slc, shift);
+  (out, slc) = shift_slice(out, slc, shift);
 
   cell tail = out.end_cell();
 
   repeat (depth) {
     out = begin_cell();
     slc = stack~pop_back();
-    out = shift_slice(out, slc, shift);
+    (out, slc) = shift_slice(out, slc, shift);
     out = out.store_ref(tail);
     tail = out.end_cell();
   }
