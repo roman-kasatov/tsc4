@@ -23,34 +23,36 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return letter;
 }
 
-(cell) shift_text(int shift, cell text) inline {
+(cell) shift_text(int shift, cell text) {
   tuple stack = null();
   slice slc = text.begin_parse();
-  slc~skip_bits(32);
 
-  builder out = begin_cell().store_uint(0, 32);
-  int flag = true;
-  while (flag) {
-    repeat (slc.slice_bits() / 8) {
+  int depth = slc.slice_depth();
+
+  repeat (depth) {
+    stack~push_back(slc);
+    slc = slc~load_ref().begin_parse();
+  }
+
+  builder out = begin_cell();
+  while (~ slc.slice_data_empty?()) {
+    int letter = slc~load_uint(8);
+    letter = shift_letter(shift, letter);
+    out~store_uint(letter, 8);
+  }
+
+  cell tail = out.end_cell();
+
+  repeat (depth) {
+    out = begin_cell();
+    slc = stack~pop_back();
+    while (~ slc.slice_data_empty?()) {
       int letter = slc~load_uint(8);
       letter = shift_letter(shift, letter);
       out~store_uint(letter, 8);
     }
-
-    if (slc.slice_refs_empty?()) {
-      flag = false;
-    } else {
-      stack~push_back(out);
-      slc = slc~load_ref().begin_parse();
-      out = begin_cell();
-    }
-  }
-
-  cell tail = out.end_cell();
-  while (~ stack.is_null()) {
-    builder next = stack~pop_back();
-    next = store_ref(next, tail);
-    tail = next.end_cell();
+    out = out.store_ref(tail);
+    tail = out.end_cell();
   }
 
   return tail;
