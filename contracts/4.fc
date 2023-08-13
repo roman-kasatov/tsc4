@@ -23,7 +23,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return letter;
 }
 
-(cell) shift_text(int shift, cell text) {
+(cell) shift_text(int shift, cell text) inline {
   tuple stack = null();
   slice slc = text.begin_parse();
   slc~skip_bits(32);
