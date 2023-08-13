@@ -31,7 +31,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   builder out = begin_cell().store_uint(0, 32);
   int flag = true;
   while (flag) {
-    while (~ slc.slice_data_empty?()) {
+    repeat (slc.slice_bits() / 8) {
       int letter = slc~load_uint(8);
       letter = shift_letter(shift, letter);
       out~store_uint(letter, 8);
