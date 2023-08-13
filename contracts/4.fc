@@ -25,6 +25,17 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return (letter, ());
 }
 
+(int, ()) unshift_letter(int letter, int shift) inline {
+  if ((65 <= letter) & (letter <= 90)) { ;; A-Z
+    letter = (letter - shift - 65) % 26 + 65;
+  } else {
+    if ((97 <= letter) & (letter <= 122)) { ;; a-z
+      letter = (letter - shift - 97) % 26 + 97;
+    }
+  }
+  return (letter, ());
+}
+
 ;; testable
 (cell) caesar_cipher_encrypt(int shift, cell text) method_id {
   tuple stack = null();
@@ -54,13 +65,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     repeat (slc.slice_bits() / 8) {
       int letter = slc~load_uint(8);
 
-      if ((65 <= letter) & (letter <= 90)) { ;; A-Z
-        letter = (letter + shift - 65) % 26 + 65;
-      } else {
-        if ((97 <= letter) & (letter <= 122)) { ;; a-z
-          letter = (letter + shift - 97) % 26 + 97;
-        }
-      }
+      letter~shift_letter(shift);
 
       out~store_uint(letter, 8);
     }
@@ -88,13 +93,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   repeat (slc.slice_bits() / 8) {
     int letter = slc~load_uint(8);
 
-    if ((65 <= letter) & (letter <= 90)) { ;; A-Z
-      letter = (letter - shift - 65) % 26 + 65;
-    } else {
-      if ((97 <= letter) & (letter <= 122)) { ;; a-z
-        letter = (letter - shift - 97) % 26 + 97;
-      }
-    }
+    letter~unshift_letter(letter);
 
     out~store_uint(letter, 8);
   }
@@ -107,13 +106,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     repeat (slc.slice_bits() / 8) {
       int letter = slc~load_uint(8);
 
-      if ((65 <= letter) & (letter <= 90)) { ;; A-Z
-        letter = (letter - shift - 65) % 26 + 65;
-      } else {
-        if ((97 <= letter) & (letter <= 122)) { ;; a-z
-          letter = (letter - shift - 97) % 26 + 97;
-        }
-      }
+      letter~unshift_letter(shift);
 
       out~store_uint(letter, 8);
     }
