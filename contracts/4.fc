@@ -13,17 +13,8 @@ forall X -> int is_null (X x) asm "ISNULL";
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
-(int) shift_letter(int shift, int letter) inline {
-  if ((65 <= letter) & (letter <= 90)) { ;; A-Z
-    return (letter + shift - 65) % 26 + 65;
-  }
-  if ((97 <= letter) & (letter <= 122)) { ;; a-z
-    return (letter + shift - 97) % 26 + 97;
-  }
-  return letter;
-}
-
-(cell) shift_text(int shift, cell text) {
+;; testable
+(cell) caesar_cipher_encrypt(int shift, cell text) method_id {
   tuple stack = null();
   slice slc = text.begin_parse();
 
@@ -37,7 +28,15 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   builder out = begin_cell();
   repeat (slc.slice_bits() / 8) {
     int letter = slc~load_uint(8);
-    letter = shift_letter(shift, letter);
+
+    if ((65 <= letter) & (letter <= 90)) { ;; A-Z
+      letter = (letter + shift - 65) % 26 + 65;
+    } else {
+      if ((97 <= letter) & (letter <= 122)) { ;; a-z
+        letter = (letter + shift - 97) % 26 + 97;
+      }
+    }
+
     out~store_uint(letter, 8);
   }
 
@@ -48,7 +47,15 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     slc = stack~pop_back();
     repeat (slc.slice_bits() / 8) {
       int letter = slc~load_uint(8);
-      letter = shift_letter(shift, letter);
+
+      if ((65 <= letter) & (letter <= 90)) { ;; A-Z
+        letter = (letter + shift - 65) % 26 + 65;
+      } else {
+        if ((97 <= letter) & (letter <= 122)) { ;; a-z
+          letter = (letter + shift - 97) % 26 + 97;
+        }
+      }
+
       out~store_uint(letter, 8);
     }
     out = out.store_ref(tail);
@@ -58,13 +65,56 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return tail;
 }
 
-;; testable
-(cell) caesar_cipher_encrypt(int shift, cell text) method_id {
-  return shift_text(shift, text);
-}
 
 ;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-  return shift_text(- shift, text);
+  tuple stack = null();
+  slice slc = text.begin_parse();
+
+  int depth = slc.slice_depth();
+
+  repeat (depth) {
+    stack~push_back(slc);
+    slc = slc~load_ref().begin_parse();
+  }
+
+  builder out = begin_cell();
+  repeat (slc.slice_bits() / 8) {
+    int letter = slc~load_uint(8);
+
+    if ((65 <= letter) & (letter <= 90)) { ;; A-Z
+      letter = (letter - shift - 65) % 26 + 65;
+    } else {
+      if ((97 <= letter) & (letter <= 122)) { ;; a-z
+        letter = (letter - shift - 97) % 26 + 97;
+      }
+    }
+
+    out~store_uint(letter, 8);
+  }
+
+  cell tail = out.end_cell();
+
+  repeat (depth) {
+    out = begin_cell();
+    slc = stack~pop_back();
+    repeat (slc.slice_bits() / 8) {
+      int letter = slc~load_uint(8);
+
+      if ((65 <= letter) & (letter <= 90)) { ;; A-Z
+        letter = (letter - shift - 65) % 26 + 65;
+      } else {
+        if ((97 <= letter) & (letter <= 122)) { ;; a-z
+          letter = (letter - shift - 97) % 26 + 97;
+        }
+      }
+
+      out~store_uint(letter, 8);
+    }
+    out = out.store_ref(tail);
+    tail = out.end_cell();
+  }
+
+  return tail;
 }
 
