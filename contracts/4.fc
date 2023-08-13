@@ -26,6 +26,17 @@ global shift_global;
   return (letter, ());
 }
 
+(slice, builder) shift_slice(slice slc, builder out) inline {
+  repeat (slc.slice_bits() / 8) {
+    int letter = slc~load_uint(8);
+
+    letter~shift_letter();
+
+    out~store_uint(letter, 8);
+  }
+  return (slc, out);
+}
+
 (cell) shift_text(cell text) inline {
   tuple stack = null();
   slice slc = text.begin_parse();
@@ -38,26 +49,16 @@ global shift_global;
   }
 
   builder out = begin_cell();
-  repeat (slc.slice_bits() / 8) {
-    int letter = slc~load_uint(8);
-
-    letter~shift_letter();
-
-    out~store_uint(letter, 8);
-  }
+  (slc, out) = shift_slice(slc, out);
 
   cell tail = out.end_cell();
 
   repeat (depth) {
     out = begin_cell();
     slc = stack~pop_back();
-    repeat (slc.slice_bits() / 8) {
-      int letter = slc~load_uint(8);
 
-      letter~shift_letter();
+    (slc, out) = shift_slice(slc, out);
 
-      out~store_uint(letter, 8);
-    }
     out = out.store_ref(tail);
     tail = out.end_cell();
   }
