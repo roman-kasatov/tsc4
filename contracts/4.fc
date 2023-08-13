@@ -20,6 +20,8 @@ global shift_global;
   } else {
     if ((97 <= letter) & (letter <= 122)) { ;; a-z
       letter = (letter + shift_global - 97) % 26 + 97;
+    } else {
+      letter = 0;
     }
   }
   return (letter, ());
@@ -68,14 +70,14 @@ global shift_global;
 
 ;; testable
 (cell) caesar_cipher_encrypt(int shift, cell text) method_id {
-  shift_global = shift;
+  shift_global = shift % 26;
   return shift_text(text);
 }
 
 
 ;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-  shift_global = - shift;
+  shift_global = (- shift) % 26;
   return shift_text(text);
 }
 
