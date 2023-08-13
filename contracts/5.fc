@@ -18,15 +18,15 @@
 
 ;; testable
 (tuple) fibonacci_sequence (int n, int k) method_id {
-  int prev = 1;
-  int cur = 0;
+  int prev = -1;
+  int cur = 1;
   repeat (n) {
     (prev, cur) = (cur, prev + cur);
   }
   tuple res = empty_tuple();
   repeat (k) {
-    res~tpush(cur);
     (prev, cur) = (cur, prev + cur);
+    res~tpush(cur);
   }
   return res;
 }
