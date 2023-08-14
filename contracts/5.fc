@@ -16,7 +16,7 @@
 () recv_internal() {
 }
 
-(tuple) asm_go_brrr(int n, int k) inline asm(k n) """
+(tuple) asm_go_brrr(int n, int k) inline asm """
   1 SETGLOB
   1 PUSHINT -1 PUSHINT
 
