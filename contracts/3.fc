@@ -37,7 +37,6 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return (slc, 2);
 }
 
-
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
   tuple stack = null();
