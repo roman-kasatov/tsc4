@@ -22,19 +22,21 @@
 
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-(int) is_empty(tuple t) asm "ISNULL"; 
+(int) is_empty(tuple t) inline asm "ISNULL"; 
 
 (int) bit_length(int x) inline asm "UBITSIZE";
 
 (slice, int) read_bit(slice slc) inline {
-  while (~ slc.slice_empty?()) {
-    if (slc.slice_data_empty?()) {
+  if (slc.slice_data_empty?()) {
+    while (~ slc.slice_empty?()) {
       slc = slc~load_ref().begin_parse();
-    } else {
-      return slc.load_uint(1);
+      if (~ slc.slice_data_empty?()) {
+        return slc.load_uint(1);
+      }
     }
+    return (slc, 2);
   }
-  return (slc, 2);
+  return slc.load_uint(1);
 }
 
 ;; testable
