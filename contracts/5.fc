@@ -17,6 +17,7 @@
 }
 
 (tuple) asm_go_brrr(int n, int k) inline asm(k n) """
+  1 SETGLOB
   1 PUSHINT -1 PUSHINT
 
   s2 XCHG0
@@ -24,13 +25,14 @@
   <{ TUCK ADD }> CONT
   REPEAT
 
-  s2 PUSH
-  <{ TUCK ADD ROTREV s2 PUSH }> CONT
+  1 GETGLOB
+  <{ DUP2 ADD }> CONT
   REPEAT
 
-  DROP2
-  
+  1 GETGLOB
   TUPLEVAR
+
+  s2 XCHG0
 """;
 
 ;; testable
