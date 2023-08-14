@@ -19,8 +19,84 @@
 () recv_internal() {
 }
 
+
+forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
+forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
+(int) is_empty(tuple t) asm "ISNULL"; 
+
+(int) bit_length(int x) inline asm "UBITSIZE";
+
+(slice, int) read_bit(slice slc) inline {
+  while (~ slc.slice_empty?()) {
+    if (slc.slice_data_empty?()) {
+      slc = slc~load_ref().begin_parse();
+    } else {
+      return slc.load_uint(1);
+    }
+  }
+  return (slc, 2);
+}
+
+
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
-  return begin_cell().end_cell();
+  tuple stack = null();
+
+  builder bld = begin_cell();
+
+  slice slc = linked_list.begin_parse();
+  int value_length = bit_length(value);
+  int flag_length = bit_length(flag);
+  int buff = 0;
+  int buff_length = 0;
+  int mask = (1 << flag_length) - 1;
+
+  int bit = slc~read_bit();
+
+  while (bit != 2) {
+    buff = (buff << 1) | bit;
+    buff_length += 1;
+    if (buff_length >= flag_length) {
+      if (buff_length > flag_length) {
+        int out_bit = buff >> flag_length;
+
+        if (bld.builder_bits() == 1023) {
+          stack~push_back(bld);
+          bld = begin_cell();
+        }
+        bld~store_uint(out_bit, 1);
+        buff &= mask;
+        buff_length -= 1;
+      }
+
+      if (buff == flag) {
+        if (value_length + bld.builder_bits() > 1023) {
+          stack~push_back(bld);
+          bld = begin_cell();
+        }
+        bld~store_uint(value, value_length);
+
+        buff = 0;
+        buff_length = 0;
+
+      }
+    }
+    bit = slc~read_bit();
+  }
+
+  if (buff_length + bld.builder_bits() > 1023) {
+    stack~push_back(bld);
+    bld = begin_cell();
+  }
+  bld~store_uint(buff, buff_length);
+
+  cell res = bld.end_cell();
+  while (~ is_empty(stack)) {
+    bld = stack~pop_back();
+    bld = bld.store_ref(res);
+    res = bld.end_cell();
+  }
+
+  return res;
 }
 
