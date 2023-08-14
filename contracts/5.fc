@@ -32,7 +32,8 @@
   1 GETGLOB
   TUPLEVAR
 
-  s2 XCHG0
+  s2 POP
+  DROP
 """;
 
 ;; testable
