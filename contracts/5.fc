@@ -16,22 +16,17 @@
 () recv_internal() {
 }
 
-(tuple) asm_go_brrr(int n, int k) inline asm """
-  1 SETGLOB
+(tuple) asm_go_brrr(int n, int k) inline asm(k n) """
   1 PUSHINT -1 PUSHINT
-
   s2 XCHG0
-
   <{ TUCK ADD }> CONT
   REPEAT
-
-  1 GETGLOB
+  ROT
   <{ DUP2 ADD }> CONT
   REPEAT
-
-  1 GETGLOB
+  DEPTH
+  -2 ADDINT
   TUPLEVAR
-
   s2 POP
   DROP
 """;
