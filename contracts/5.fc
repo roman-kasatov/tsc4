@@ -16,58 +16,24 @@
 () recv_internal() {
 }
 
-(tuple) mult_matrix(tuple A, tuple B) inline {
-  tuple res = empty_tuple();
+(tuple) asm_go_brrr(int n, int k) inline asm(k n) """
+  1 PUSHINT -1 PUSHINT
 
-  tuple A_row = A.at(0);
-  res~tpush(empty_tuple()
-    .tpush(A_row.at(0) * B.at(0).at(0) + A_row.at(1) * B.at(1).at(0))
-    .tpush(A_row.at(0) * B.at(0).at(1) + A_row.at(1) * B.at(1).at(1))
-  );
-  A_row = A.at(1);
-  res~tpush(empty_tuple()
-    .tpush(A_row.at(0) * B.at(0).at(0) + A_row.at(1) * B.at(1).at(0))
-    .tpush(A_row.at(0) * B.at(0).at(1) + A_row.at(1) * B.at(1).at(1))
-  );
-  return res;
-}
+  s2 XCHG0
 
-(tuple) bin_pow(tuple A, int pow) {
-  tuple res = empty_tuple();
-  res~tpush(empty_tuple().tpush(1).tpush(0));
-  res~tpush(empty_tuple().tpush(0).tpush(1));
+  <{ SWAP OVER ADD }> CONT
+  REPEAT
 
-  while (pow) {
-    if (pow & 1) {
-      res = mult_matrix(res, A);
-    }
-    pow >>= 1;
-    if (pow) {
-      A = mult_matrix(A, A);
-    }
-  }
-  return res;
-}
+  s2 PUSH
+  <{ SWAP OVER ADD s2 XCHG0 SWAP s2 PUSH }> CONT
+  REPEAT
+
+  DROP DROP
+  
+  TUPLEVAR
+""";
 
 ;; testable
 (tuple) fibonacci_sequence (int n, int k) method_id {
-  ;; cur = 0, prev = 1
-  tuple A = empty_tuple();
-  A~tpush(empty_tuple().tpush(1).tpush(1));
-  A~tpush(empty_tuple().tpush(1).tpush(0));
-  A = bin_pow(A, n);
-
-  tuple A_row = A.at(0);
-  int cur = A_row.at(1);
-  A_row = A.at(1);
-  int prev = A_row.at(1);
-  
-  (prev, cur) = (cur - prev, prev);
-
-  tuple res = empty_tuple();
-  repeat (k) {
-    (prev, cur) = (cur, prev + cur);
-    res~tpush(cur);
-  }
-  return res;
+  return asm_go_brrr(n, k);
 }
