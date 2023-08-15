@@ -48,12 +48,12 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   slice slc = linked_list.begin_parse();
   int value_length = bit_length(value);
   int flag_length = bit_length(flag);
-  int buff = 0;
-  int buff_length = 0;
   int mask = (1 << flag_length) - 1;
-
+  int buff_length = min(flag_length - 1, slc.slice_bits());
+  int buff = slc~load_uint(buff_length);
+  
+  
   int bit = slc~read_bit();
-
   while (bit != 2) {
     buff = (buff << 1) | bit;
     buff_length += 1;
@@ -77,8 +77,8 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
         }
         bld~store_uint(value, value_length);
 
-        buff = 0;
-        buff_length = 0;
+        buff_length = min(flag_length - 1, slc.slice_bits());
+        buff = slc~load_uint(buff_length);
 
       }
     }
