@@ -9,23 +9,38 @@
 () recv_internal() {
 }
 
-forall X -> int is_null (X x) asm "ISNULL";
-forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
-forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
+
+(cell) asm_go_brrr(int hash, cell tree) asm(tree hash) """
+  c2 SAVE
+  SAMEALTSAVE
+  WHILE:<{ DEPTH DEC }>DO<{
+    OVER
+    HASHCU
+    OVER
+    EQUAL
+    IF:<{
+      SWAP
+      ONE
+      ONLYTOPX
+      RETALT
+    }>
+    SWAP
+    CTOS
+    DUP
+    SREFS
+    REPEAT:<{
+      LDREF
+      s1 s2 XCHG
+    }>
+    DROP
+  }>
+  DROP
+  
+  NEWC ENDC
+""";
+
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-  tuple stack = null();
-  stack~push_back(tree);
-  while (~ stack.is_null()) {
-    cell cur = stack~pop_back();
-    if (cur.cell_hash() == hash) {
-      return cur;
-    }
-    slice slc = cur.begin_parse();
-    repeat (slc.slice_refs()) {
-      stack~push_back(slc~load_ref());
-    }
-  }
-  return begin_cell().end_cell();
+  return asm_go_brrr(hash, tree);
 }
