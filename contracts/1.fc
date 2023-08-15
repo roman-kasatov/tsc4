@@ -13,22 +13,34 @@
 (cell) asm_go_brrr(int hash, cell tree) asm(tree hash) """
   c2 SAVE
   SAMEALTSAVE
+
+  s0 s1 PUSH2
+  HASHCU
+  EQUAL
+  IF:<{
+    DROP
+    RETALT
+  }>
+
   WHILE:<{ DEPTH DEC }>DO<{
-    s0 s1 PUSH2
-    HASHCU
-    EQUAL
-    IF:<{
-      SWAP
-      ONE
-      ONLYTOPX
-      RETALT
-    }>
+
     SWAP
     CTOS
     DUP
     SREFS
     REPEAT:<{
       LDREF
+
+      s2 s1 PUSH2
+      HASHCU
+      EQUAL
+      IF:<{
+        DROP
+        ONE
+        ONLYTOPX
+        RETALT
+      }>
+
       s1 s2 XCHG
     }>
     DROP
