@@ -22,7 +22,7 @@
     RETALT
   }>
 
-  WHILE:<{ DEPTH DEC }>DO<{
+  AGAIN:<{
 
     SWAP
     CTOS
@@ -44,10 +44,15 @@
       s1 s2 XCHG
     }>
     DROP
-  }>
-  DROP
-  
-  NEWC ENDC
+
+    DEPTH
+    DEC
+    IFNOT:<{
+      DROP
+      NEWC ENDC
+      RETALT
+    }>
+  }>  
 """;
 
 
