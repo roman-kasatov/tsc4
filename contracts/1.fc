@@ -14,9 +14,8 @@
   c2 SAVE
   SAMEALTSAVE
   WHILE:<{ DEPTH DEC }>DO<{
-    OVER
+    s0 s1 PUSH2
     HASHCU
-    OVER
     EQUAL
     IF:<{
       SWAP
