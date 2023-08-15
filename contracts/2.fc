@@ -22,7 +22,10 @@
   OVER
   TLEN
 
-  3 ROLL
+  ZERO // reference
+  NIL // reference
+
+  5 ROLL
   DUP
   TLEN
   UNTUPLEVAR
@@ -34,20 +37,20 @@
   ZERO // row
 
   DEPTH
-  4 PUSHINT
+  6 PUSHINT
   SUB
   REPEAT:<{ // for row
-    NIL // result row
-    ZERO // col
-    s4 PUSH 
-    
+    // add NIL(result row) ZERO(col) columns
+
+    s5 s4 s2 PUSH3
+
     REPEAT:<{ // for col
-      ZERO // sum
-      ZERO // k
+      // add ZERO(sum) ZERO(k)
+      s6 s6 PUSH2
 
       s7 PUSH
       REPEAT:<{ // for k
-        s1 s8 s1 XCPU2
+        s1 s10 s1 XCPU2
         INDEXVAR
 
         s6 s2 PUSH2
@@ -74,13 +77,12 @@
     DEC
     ROLLREVX
 
-    4 ROLL
-    DROP
+    1 6 BLKDROP2
 
     INC
   }>
 
-  4 BLKDROP
+  6 BLKDROP
 
   DEPTH
   ZERO
@@ -88,7 +90,6 @@
 
   DEPTH
   TUPLEVAR
-
 """;
 
 
