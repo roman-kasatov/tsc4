@@ -71,8 +71,6 @@
     DROP
 
     DEPTH
-    s2 PUSH
-    SUB
     DEC
     ROLLREVX
 
@@ -83,6 +81,10 @@
   }>
 
   4 BLKDROP
+
+  DEPTH
+  ZERO
+  REVX
 
   DEPTH
   TUPLEVAR
