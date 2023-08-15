@@ -14,31 +14,112 @@
 
 (int) length(tuple tup) asm "TLEN";
 
+
+(tuple) asm_go_brr(tuple matrixA, tuple matrixB) asm """
+  DUP
+  FIRST
+  TLEN
+  OVER
+  TLEN
+
+  3 ROLL
+  DUP
+  TLEN
+  UNTUPLEVAR
+  
+  DEPTH
+  ZERO
+  REVX
+
+  ZERO // row
+
+  DEPTH
+  4 PUSHINT
+  SUB
+  REPEAT:<{ // for row
+    NIL // result row
+    ZERO // col
+    s4 PUSH 
+    
+    REPEAT:<{ // for col
+      ZERO // k
+      ZERO // sum
+
+      s7 PUSH
+      REPEAT:<{ // for k
+        s8 s1 PUSH2
+        INDEXVAR
+
+        s6 s2 PUSH2
+        INDEXVAR
+        s4 PUSH
+        INDEXVAR
+
+        MUL
+        ADD
+        
+        SWAP
+        INC
+        SWAP
+      }>
+      NIP
+      s1 s2 XCHG
+      TPUSH
+      SWAP
+
+      INC
+    }>
+    DROP
+
+    DEPTH
+    s2 PUSH
+    SUB
+    DEC
+    ROLLREVX
+
+    4 ROLL
+    DROP
+
+    INC
+  }>
+
+  4 BLKDROP
+
+  DEPTH
+  TUPLEVAR
+
+""";
+
+
+
+
 ;; testable
 (tuple) matrix_multiplier(tuple matrixA, tuple matrixB) method_id {
-  int row = 0;
-  int row_nmb = matrixA.length();
-  int col_nmb = matrixB.first().length();
-  int depth = matrixB.length();
-  tuple res = empty_tuple();
+  ;; int row = 0;
+  ;; int row_nmb = matrixA.length();
+  ;; int col_nmb = matrixB.first().length();
+  ;; int depth = matrixB.length();
+  ;; tuple res = empty_tuple();
 
-  repeat (row_nmb) {
-    tuple res_row = empty_tuple();
-    tuple A_row = matrixA.at(row);
-    int col = 0;
-    repeat (col_nmb) {
-      int sum = 0;
-      int k = 0;
-      repeat (depth) {
-        sum += A_row.at(k) * matrixB.at(k).at(col);
-        k += 1;
-      }
-      res_row~tpush(sum);
-      col += 1;
-    }
-    res~tpush(res_row);
-    row += 1;
-  }
-  return res;
+  ;; repeat (row_nmb) {
+  ;;   tuple res_row = empty_tuple();
+  ;;   tuple A_row = matrixA.at(row);
+  ;;   int col = 0;
+  ;;   repeat (col_nmb) {
+  ;;     int sum = 0;
+  ;;     int k = 0;
+  ;;     repeat (depth) {
+  ;;       sum += A_row.at(k) * matrixB.at(k).at(col);
+  ;;       k += 1;
+  ;;     }
+  ;;     res_row~tpush(sum);
+  ;;     col += 1;
+  ;;   }
+  ;;   res~tpush(res_row);
+  ;;   row += 1;
+  ;; }
+  ;; return res;
+
+  return asm_go_brr(matrixA, matrixB);
 }
 
