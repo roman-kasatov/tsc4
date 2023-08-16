@@ -13,11 +13,17 @@ forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
 
-(int, ()) shift_letter(int letter, shift) inline {
+(int, ()) shift_letter(int letter, int shift) inline {
   if (97 <= letter) { ;; a-z
-    letter = (letter + shift - 97) % 26 + 97;
+    if (letter <= 122) {
+      letter = (letter + shift - 97) % 26 + 97;
+    }
   } else {
-    letter = (letter + shift - 65) % 26 + 65;
+    if (65 <= letter) { ;; A-Z
+      if (letter <= 90) {
+        letter = (letter + shift - 65) % 26 + 65;
+      }
+    }
   }
   return (letter, ());
 }
