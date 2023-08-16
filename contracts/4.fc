@@ -29,6 +29,64 @@ int map_get(slice mapping, int x) inline asm """
   STSLICE
 """;
 
+
+;; =======================
+;; 0
+;; 1
+;; ...
+;; 90
+;; ...
+;; 122
+;; 
+
+
+;; s[25]..s[26 - shift] and s[25 - shift]..s[0]
+
+;; i + j + 1 = 25
+
+;; j + 1 = 26 - shift
+;; i + 1 = shift - 1
+
+(tuple) create_mapping_(int shift) asm """
+  DUP
+  1 PUSHINT
+  89 PUSHINT
+  REPEAT:<{
+    TUCK
+    INC
+  }>
+
+  s1 s0 XCPU
+  ISPOS
+  IF:<{
+    DEC
+    DUP
+    25 PUSHINT
+    SUBR
+    BLKSWX
+  }>
+
+  32 PUSH
+  REPEAT:<{
+    DUP
+    INC
+  }>
+
+  ZERO
+  s0 123 s() XCHG
+  DUP
+  ISPOS
+  IF:<{
+    DEC
+    DUP
+    25 PUSHINT
+    SUBR
+    BLKSWX
+  }>
+  
+
+""";
+
 (slice) create_mapping(int shift) inline {
   builder dct = begin_cell();
   dct = dct.store_slice("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40"s);
@@ -44,7 +102,11 @@ int map_get(slice mapping, int x) inline asm """
   repeat (slc.slice_bits() / 8) {
     int letter = slc~load_uint(8);
     if (letter > 122) {
+      if (letter > 130) {
+        out~store_letter(0);
+      } else {
       out~store_letter(letter);
+      }
     } else {
       out = out.store_uint(map.map_get(letter), 8);
     }
