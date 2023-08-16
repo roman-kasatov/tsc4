@@ -52,11 +52,14 @@ int map_get(slice mapping, int x) inline asm """
   return (slc, out);
 }
 
-(cell) shift_text(cell text, slice map) inline {
+(cell) shift_text(cell text, int shift) inline {
+  shift %= 26;
+  slice map = create_mapping(shift);
   tuple stack = null();
   slice slc = text.begin_parse();
 
   int depth = slc.slice_depth();
+
 
   repeat (depth) {
     stack~push_back(slc);
@@ -84,10 +87,10 @@ int map_get(slice mapping, int x) inline asm """
 
 ;; testable
 (cell) caesar_cipher_encrypt(int shift, cell text) method_id {
-  return shift_text(text, create_mapping(shift % 26));
+  return shift_text(text, shift);
 }
 
 ;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-  return shift_text(text, create_mapping((- shift) % 26));
+  return shift_text(text, - shift);
 }
