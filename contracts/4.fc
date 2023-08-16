@@ -102,7 +102,7 @@ int map_get(slice mapping, int x) inline asm """
   repeat (slc.slice_bits() / 8) {
     int letter = slc~load_uint(8);
     if (letter > 122) {
-      if (letter > 130) {
+      if (letter > 250) {
         out~store_letter(0);
       } else {
       out~store_letter(letter);
