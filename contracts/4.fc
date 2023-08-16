@@ -26,7 +26,7 @@ global shift_global;
       }
     }
   }
-  return (0, ());
+  return (letter, ());
 }
 
 (slice, builder) shift_slice(slice slc, builder out) inline {
