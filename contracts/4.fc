@@ -32,9 +32,9 @@ int map_get(slice mapping, int x) inline asm """
 (slice) create_mapping(int shift) inline {
   builder dct = begin_cell();
   dct = dct.store_slice("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40"s);
-  dct~store_rotated_slice("4142434445464748494a4b4c4d4e4f505152535455565758595a"s, shift); ;; A-Z
+  dct~store_rotated_slice("4142434445464748494a4b4c4d4e4f505152535455565758595a"s, shift); ;; A-Z 65-90
   dct = dct.store_slice("5b5c5d5e5f60"s);
-  dct~store_rotated_slice("6162636465666768696a6b6c6d6e6f707172737475767778797a"s, shift); ;; a-z
+  dct~store_rotated_slice("6162636465666768696a6b6c6d6e6f707172737475767778797a"s, shift); ;; a-z 97-122
   return dct.end_cell().begin_parse();
 }
 
