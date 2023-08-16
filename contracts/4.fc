@@ -12,54 +12,57 @@
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
+global shift_global_A;
+global shift_global_a;
 
-(int, ()) shift_letter(int letter, int shift) inline {
+(int, ()) shift_letter(int letter) inline {
   if (97 <= letter) { ;; a-z
     if (letter <= 122) {
-      letter = (letter + shift - 97) % 26 + 97;
+      letter = (letter + shift_global_a) % 26 + 97;
     }
   } else {
     if (65 <= letter) { ;; A-Z
       if (letter <= 90) {
-        letter = (letter + shift - 65) % 26 + 65;
+        letter = (letter + shift_global_A) % 26 + 65;
       }
     }
   }
   return (letter, ());
 }
 
-(slice, builder) shift_slice(slice slc, builder out, int shift) inline {
+(slice, builder) shift_slice(slice slc, builder out) inline {
   repeat (slc.slice_bits() / 8) {
     int letter = slc~load_uint(8);
 
-    letter~shift_letter(shift);
+    letter~shift_letter();
 
     out~store_uint(letter, 8);
   }
   return (slc, out);
 }
 
-(cell) shift_text(cell text, int shift) inline {
+(cell) shift_text(cell text) inline {
   tuple stack = null();
   slice slc = text.begin_parse();
 
   int depth = slc.slice_depth();
 
-  builder out = begin_cell();
-  out~store_uint(0, 32);
-  slc~skip_bits(32);
-  (slc, out) = shift_slice(slc, out, shift);
-
   repeat (depth) {
+    stack~push_back(slc);
     slc = slc~load_ref().begin_parse();
-    stack~push_back(out);
-    out = begin_cell();
-    (slc, out) = shift_slice(slc, out, shift);
   }
 
+  builder out = begin_cell();
+  (slc, out) = shift_slice(slc, out);
+
   cell tail = out.end_cell();
+
   repeat (depth) {
-    out = stack~pop_back();
+    out = begin_cell();
+    slc = stack~pop_back();
+
+    (slc, out) = shift_slice(slc, out);
+
     out = out.store_ref(tail);
     tail = out.end_cell();
   }
@@ -70,14 +73,16 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
 ;; testable
 (cell) caesar_cipher_encrypt(int shift, cell text) method_id {
-
-  return shift_text(text, shift);
+  shift_global_A = shift - 65;
+  shift_global_a = shift - 97;
+  return shift_text(text);
 }
 
 
 ;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-
-  return shift_text(text, - shift);
+  shift = - shift;
+  shift_global_A = shift - 65;
+  shift_global_a = shift - 97;
+  return shift_text(text);
 }
-
