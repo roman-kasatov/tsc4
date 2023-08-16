@@ -39,6 +39,29 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   return slc.load_uint(1);
 }
 
+(slice, int, int) read_word(slice slc, int length) inline {
+  int available = slc.slice_bits();
+  if (length <= available) {
+    int res = slc~load_uint(length);
+    return (slc, res, 0);
+  }
+
+  length -= available;
+  int res = slc~load_uint(available);
+
+  repeat (slc.slice_depth()) {
+    slc = slc~load_ref().begin_parse();
+    available = slc.slice_bits();
+    if (length <= available) {
+      res = (res << length) | slc~load_uint(length);
+      return (slc, res, 0);
+    }
+    length -= available;
+    res = (res << available) | slc~load_uint(available);
+  }
+  return (slc, res, length);
+}
+
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
   tuple stack = null();
@@ -49,47 +72,47 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   int value_length = bit_length(value);
   int flag_length = bit_length(flag);
   int mask = (1 << flag_length) - 1;
-  int buff_length = min(flag_length - 1, slc.slice_bits());
-  int buff = slc~load_uint(buff_length);
-  
-  
-  int bit = slc~read_bit();
-  while (bit != 2) {
-    buff = (buff << 1) | bit;
-    buff_length += 1;
-    if (buff_length >= flag_length) {
-      if (buff_length > flag_length) {
-        int out_bit = buff >> flag_length;
 
-        if (bld.builder_bits() == 1023) {
-          stack~push_back(bld);
-          bld = begin_cell();
-        }
-        bld~store_uint(out_bit, 1);
-        buff &= mask;
-        buff_length -= 1;
-      }
+  (slc, int buff, int left) = slc.read_word(flag_length);
 
-      if (buff == flag) {
+  while (left == 0) {
+    if (buff == flag) {
         if (value_length + bld.builder_bits() > 1023) {
           stack~push_back(bld);
           bld = begin_cell();
         }
         bld~store_uint(value, value_length);
 
-        buff_length = min(flag_length - 1, slc.slice_bits());
-        buff = slc~load_uint(buff_length);
+        (slc, buff, left) = slc.read_word(flag_length);
+    } else {
+      buff <<= 1;
+      int out_bit = buff >> flag_length;  
+      buff &= mask;
 
+      if (bld.builder_bits() == 1023) {
+        stack~push_back(bld);
+        bld = begin_cell();
+      }
+      bld~store_uint(out_bit, 1);
+
+      int bit = slc~read_bit();
+      if (bit == 2) {
+        left = 1;
+        buff >>= 1;
+      } else {
+        left = 0;
+        buff |= bit;
       }
     }
-    bit = slc~read_bit();
   }
 
-  if (buff_length + bld.builder_bits() > 1023) {
+  int readed = flag_length - left;
+
+  if (readed + bld.builder_bits() > 1023) {
     stack~push_back(bld);
     bld = begin_cell();
   }
-  bld~store_uint(buff, buff_length);
+  bld~store_uint(buff, readed);
 
   cell res = bld.end_cell();
   while (~ is_empty(stack)) {
