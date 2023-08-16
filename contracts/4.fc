@@ -33,6 +33,8 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     26 PUSHINT
     SUBR
     BLKSWX
+  }>ELSE<{
+    DROP
   }>
 
   91 PUSHINT
@@ -51,10 +53,12 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     26 PUSHINT
     SUBR
     BLKSWX
+  }>ELSE<{
+    DROP
   }>
 
   123 PUSHINT
-  130 PUSHINT
+  128 PUSHINT
   REPEAT:<{
     DUP
     INC
@@ -66,12 +70,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
 (slice, builder) shift_slice(slice slc, builder out, tuple map) inline {
   repeat (slc.slice_bits() / 8) {
-    int letter = slc~load_uint(8);
-    if (letter > 122 ) {
-      out~store_letter(letter);
-    } else {
-      out~store_letter(map.at(letter));
-    }
+    out~store_letter(map.at(slc~load_uint(8)));
   }
   return (slc, out);
 }
