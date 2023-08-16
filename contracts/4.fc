@@ -11,7 +11,6 @@
 
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-(int) is_empty(tuple t) inline asm "ISNULL";
 
 global shift_global;
 
@@ -52,15 +51,13 @@ global shift_global;
 
   repeat (depth) {
     slc = slc~load_ref().begin_parse();
-    if (out.builder_bits() + slc.slice_bits() > 1023) {
-      stack~push_back(out);
-      out = begin_cell();
-    }
+    stack~push_back(out);
+    out = begin_cell();
     (slc, out) = shift_slice(slc, out);
   }
 
   cell tail = out.end_cell();
-  while (~ stack.is_empty()) {
+  repeat (depth) {
     out = stack~pop_back();
     out = out.store_ref(tail);
     tail = out.end_cell();
