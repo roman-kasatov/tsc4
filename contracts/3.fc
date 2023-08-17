@@ -22,98 +22,91 @@
 
 forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
 forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
-(int) is_empty(tuple t) inline asm "ISNULL"; 
-
+(int) is_empty(tuple t) inline asm "ISNULL";
 (int) bit_length(int x) inline asm "UBITSIZE";
 
-(slice, int) read_bit(slice slc) inline {
-  if (slc.slice_data_empty?()) {
-    while (~ slc.slice_empty?()) {
-      slc = slc~load_ref().begin_parse();
-      if (~ slc.slice_data_empty?()) {
-        return slc.load_uint(1);
-      }
-    }
-    return (slc, 2);
-  }
-  return slc.load_uint(1);
-}
 
-(slice, int, int) read_word(slice slc, int length) inline {
-  int available = slc.slice_bits();
-  if (length <= available) {
-    int res = slc~load_uint(length);
-    return (slc, res, 0);
-  }
+(int) has_space(builder b) asm "1 BCHKBITSQ#";
+(int) has_space_spec(builder b, int space) asm "BCHKBITSQ";
 
-  length -= available;
-  int res = slc~load_uint(available);
 
-  repeat (slc.slice_depth()) {
-    slc = slc~load_ref().begin_parse();
-    available = slc.slice_bits();
-    if (length <= available) {
-      res = (res << length) | slc~load_uint(length);
-      return (slc, res, 0);
-    }
-    length -= available;
-    res = (res << available) | slc~load_uint(available);
-  }
-  return (slc, res, length);
-}
+(slice, int, int) load_uint_spec(slice slc, int res, int length) {
+  int readed = min(slc.slice_bits(), length);
+  res = (res << readed) | slc~load_uint(readed);
+  return (slc, res, readed);
+} 
 
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
-  tuple stack = null();
-
-  builder bld = begin_cell();
-
-  slice slc = linked_list.begin_parse();
   int value_length = bit_length(value);
   int flag_length = bit_length(flag);
   int mask = (1 << flag_length) - 1;
-  mask |= 1;
 
-  (slc, int buff, int left) = slc.read_word(flag_length);
+  tuple stack = null();
 
-  while (left == 0) {
-    if (buff == flag) {
-        if (value_length + bld.builder_bits() > 1023) {
-          stack~push_back(bld);
-          bld = begin_cell();
-        }
-        bld~store_uint(value, value_length);
+  builder bld = begin_cell();
+  slice slc = linked_list.begin_parse();
+  int buffer = 0;
+  int flag_length_minus_one = flag_length - 1;
+  int mask = (1 << flag_length_minus_one) - 1; 
 
-        (slc, buff, left) = slc.read_word(flag_length);
+  (slc, buffer, int buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
+  while (~ slc.slice_data_empty?()) {
+    buffer = (buffer << 1) | slc~load_uint(1);
+
+    if (buffer == flag) {
+      if (~ bld.has_space_spec(value_length)) {
+        stack.push_back(bld);
+        bld = begin_cell();
+      }
+      bld~store_uint(value, value_length);
+      (slc, buffer, buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
     } else {
-      buff <<= 1;
-      int out_bit = buff >> flag_length;  
-      buff &= mask;
-
-      if (bld.builder_bits() == 1023) {
-        stack~push_back(bld);
+      int out_bit = buffer >> flag_length_minus_one;
+      if (~ bld.has_space()) {
+        stack.push_back(bld);
         bld = begin_cell();
       }
       bld~store_uint(out_bit, 1);
+      buffer &= mask;
+    }
+  }
 
-      int bit = slc~read_bit();
-      if (bit == 2) {
-        left = 1;
-        buff >>= 1;
+  repeat (slc.slice_depth()) {
+    slc = slc~load_ref().begin_parse();
+    if (buffer_length < flag_length_minus_one) {
+      (slc, buffer, int readed) = load_uint_spec(slc, buffer, flag_length_minus_one - buffer_length);
+      buffer_length += readed;
+    }
+
+    while (~ slc.slice_data_empty?()) {
+      buffer = (buffer << 1) | slc~load_uint(1);
+
+      if (buffer == flag) {
+        if (~ bld.has_space_spec(value_length)) {
+          stack.push_back(bld);
+          bld = begin_cell();
+        }
+        bld~store_uint(value, value_length);
+        (slc, buffer, buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
       } else {
-        left = 0;
-        buff |= bit;
+        int out_bit = buffer >> flag_length_minus_one;
+        if (~ bld.has_space()) {
+          stack.push_back(bld);
+          bld = begin_cell();
+        }
+        bld~store_uint(out_bit, 1);
+        buffer &= mask;
       }
     }
   }
 
-  int readed = flag_length - left;
-
-  if (readed + bld.builder_bits() > 1023) {
-    stack~push_back(bld);
+  if (~ bld.has_space_spec(buffer_length)) {
+    stack.push_back(bld);
     bld = begin_cell();
   }
-  bld~store_uint(buff, readed);
+  bld~store_uint(buffer, buffer_length);
+
 
   cell res = bld.end_cell();
   while (~ is_empty(stack)) {
