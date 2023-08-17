@@ -26,8 +26,8 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 (int) bit_length(int x) inline asm "UBITSIZE";
 
 
-(int) has_space(builder b) asm "1 BCHKBITSQ#";
-(int) has_space_spec(builder b, int space) asm "BCHKBITSQ";
+;; (int) has_space(builder b) asm "1 BCHKBITSQ#";
+;; (int) has_space_spec(builder b, int space) asm "BCHKBITSQ";
 
 
 (slice, int, int) load_uint_spec(slice slc, int res, int length) {
@@ -41,7 +41,6 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
   int value_length = bit_length(value);
   int flag_length = bit_length(flag);
-  int mask = (1 << flag_length) - 1;
 
   tuple stack = null();
 
@@ -107,10 +106,10 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     }
   }
 
-  if (~ bld.has_space_spec(buffer_length)) {
+  ;; if (~ bld.has_space_spec(buffer_length)) {
     stack~push_back(bld);
     bld = begin_cell();
-  }
+  ;; }
   bld~store_uint(buffer, buffer_length);
 
 
