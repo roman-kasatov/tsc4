@@ -109,15 +109,9 @@
   s0 90 s() XCHG
 
   DUP
-  ISPOS
-  IF:<{
-    DUP
-    26 PUSHINT
-    SUBR
-    BLKSWX
-  }>ELSE<{
-    DROP
-  }>
+  26 PUSHINT
+  SUBR
+  BLKSWX
 
   91 PUSHINT
   92 PUSHINT
@@ -154,16 +148,11 @@
 
   ZERO
   s0 123 s() XCHG
+
   DUP
-  ISPOS
-  IF:<{
-    DUP
-    26 PUSHINT
-    SUBR
-    BLKSWX
-  }>ELSE<{
-    DROP
-  }>
+  26 PUSHINT
+  SUBR
+  BLKSWX
 
   123 PUSHINT
   124 PUSHINT
