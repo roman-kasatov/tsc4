@@ -26,8 +26,8 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 (int) bit_length(int x) inline asm "UBITSIZE";
 
 
-;; (int) has_space(builder b) asm "1 BCHKBITSQ#";
-;; (int) has_space_spec(builder b, int space) asm "BCHKBITSQ";
+(int) has_space(builder b) asm "1 BCHKBITSQ#";
+(int) has_space_spec(builder b, int space) asm "BCHKBITSQ";
 
 
 (slice, int, int) load_uint_spec(slice slc, int res, int length) {
@@ -43,30 +43,29 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   int flag_length = bit_length(flag);
 
   tuple stack = null();
-
   builder bld = begin_cell();
+
   slice slc = linked_list.begin_parse();
-  int buffer = 0;
+
   int flag_length_minus_one = flag_length - 1;
   int mask = (1 << flag_length_minus_one) - 1; 
 
-  (slc, buffer, int buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
+  (slc, int buffer, int buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
 
   while (~ slc.slice_data_empty?()) {
 
     buffer = (buffer << 1) | slc~load_uint(1);
 
     if (buffer == flag) {
-      ;; if (~ bld.has_space_spec(value_length)) {
+      if (~ bld.has_space_spec(value_length)) {
         stack~push_back(bld);
         bld = begin_cell();
-      ;; }
+      }
       bld~store_uint(value, value_length);
       (slc, buffer, buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
     } else {
       int out_bit = buffer >> flag_length_minus_one;
-      ;; if (~ bld.has_space()) {
-      if (bld.builder_bits() == 1023) {
+      if (~ bld.has_space()) {
         stack~push_back(bld);
         bld = begin_cell();
       }
@@ -87,16 +86,15 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
       buffer = (buffer << 1) | slc~load_uint(1);
 
       if (buffer == flag) {
-        ;; if (~ bld.has_space_spec(value_length)) {
+        if (~ bld.has_space_spec(value_length)) {
           stack~push_back(bld);
           bld = begin_cell();
-        ;; }
+        }
         bld~store_uint(value, value_length);
         (slc, buffer, buffer_length) = load_uint_spec(slc, 0, flag_length_minus_one);
       } else {
         int out_bit = buffer >> flag_length_minus_one;
-        ;; if (~ bld.has_space()) {
-        if (bld.builder_bits() == 1023) {
+        if (~ bld.has_space()) {
           stack~push_back(bld);
           bld = begin_cell();
         }
@@ -106,10 +104,11 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     }
   }
 
-  ;; if (~ bld.has_space_spec(buffer_length)) {
+  
+  if (~ bld.has_space_spec(buffer_length)) {
     stack~push_back(bld);
     bld = begin_cell();
-  ;; }
+  }
   bld~store_uint(buffer, buffer_length);
 
 
