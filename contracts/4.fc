@@ -9,15 +9,8 @@
 () recv_internal() {
 }
 
-forall X -> (tuple, ()) push_back (tuple tail, X head) asm "CONS";
-forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
-(builder, ()) store_letter(builder b, int letter) asm(letter b) "8 STU";
-
-
-;; A-Z 65-90
-;; a-z 97-122
-(tuple) create_mapping(int shift) asm """
+(cell) shift_text(cell text, int shift) asm """
   DUP
   1 PUSHINT
   89 PUSHINT
@@ -64,48 +57,63 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     INC
   }>
 
-  TUPLEVAR
+  TUPLEVAR // stack = text map
+
+  NEWC
+  ROT
+  CTOS // map builder slice
+
+  DUP
+  SBITS
+  3 RSHIFT#
+  REPEAT:<{ // map builder slice
+    8 LDU
+    s3 s1 PUXC
+    INDEXVAR
+    ROT
+    8 STU
+    SWAP
+  }>
+
+  // builder map builder1 slice1 builder
+
+  DUP
+  SDEPTH
+  REPEAT:<{
+    LDREFRTOS
+    NIP
+    NEWC
+
+    s3 s0 s0 XCHG3
+
+    DUP
+    SBITS
+    3 RSHIFT#
+    REPEAT:<{ // map builder slice
+      8 LDU
+      s3 s1 PUXC
+      INDEXVAR
+      ROT
+      8 STU
+      SWAP
+    }>
+  }> 
+
+  // builder0 ... builder_n-1 map builder_n slice 
+  
+  ROT
+  DROP2
+  DEPTH
+  DEC
+  REPEAT:<{ STBREFR }>
+  ENDC
 """;
 
-
-(slice, builder) shift_slice(slice slc, builder out, tuple map) inline {
-  repeat (slc.slice_bits() / 8) {
-    out~store_letter(map.at(slc~load_uint(8)));
-  }
-  return (slc, out);
-}
-
-(cell) shift_text(cell text, int shift) inline {
-  shift %= 26;
-  tuple map = create_mapping(shift);
-  tuple stack = null();
-  slice slc = text.begin_parse();
-
-  int depth = slc.slice_depth();
+  
 
 
-  repeat (depth) {
-    stack~push_back(slc);
-    slc = slc~load_ref().begin_parse();
-  }
 
-  builder out = begin_cell();
-  (slc, out) = shift_slice(slc, out, map);
 
-  cell tail = out.end_cell();
-
-  repeat (depth) {
-    out = begin_cell();
-    slc = stack~pop_back();
-
-    (slc, out) = shift_slice(slc, out, map);
-
-    out = out.store_ref(tail);
-    tail = out.end_cell();
-  }
-
-  return tail;
-}
 
 
 ;; testable
