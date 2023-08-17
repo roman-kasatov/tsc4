@@ -34,8 +34,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   int readed = min(slc.slice_bits(), length);
   res = (res << readed) | slc~load_uint(readed);
   return (slc, res, readed);
-}
-
+} 
 
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
@@ -58,7 +57,6 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
     buffer = (buffer << 1) | slc~load_uint(1);
 
     if (buffer == flag) {
-      flag = (flag << 2 + 3) >> 2; ;; DEBUG DEBUG DEBUG
       if (~ bld.has_space_spec(value_length)) {
         stack~push_back(bld);
         bld = begin_cell();
@@ -88,7 +86,6 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
       buffer = (buffer << 1) | slc~load_uint(1);
 
       if (buffer == flag) {
-        flag = (flag << 2 + 3) >> 2; ;; DEBUG DEBUG DEBUG
         if (~ bld.has_space_spec(value_length)) {
           stack~push_back(bld);
           bld = begin_cell();
@@ -124,4 +121,3 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
 
   return res;
 }
-
