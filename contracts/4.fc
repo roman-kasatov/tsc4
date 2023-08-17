@@ -11,6 +11,8 @@
 
 
 (cell) shift_text(cell text, int shift) asm """
+  26 PUSHINT
+  MOD
   DUP
   1 PUSHINT
   89 PUSHINT
