@@ -72,6 +72,7 @@ forall X -> (tuple, (X)) pop_back (tuple t) asm "UNCONS";
   int value_length = bit_length(value);
   int flag_length = bit_length(flag);
   int mask = (1 << flag_length) - 1;
+  mask |= 1;
 
   (slc, int buff, int left) = slc.read_word(flag_length);
 

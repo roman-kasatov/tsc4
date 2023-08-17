@@ -14,7 +14,12 @@
   26 PUSHINT
   MOD
   DUP
-
+  ISZERO
+  IF:<{
+    DROP
+  }>ELSE<{
+    
+  DUP
   2 PUSHINT
   3 PUSHINT
   4 PUSHINT
@@ -334,6 +339,8 @@
   DEC
   REPEAT:<{ STBREFR }>
   ENDC
+
+  }>
 """;
 
   
